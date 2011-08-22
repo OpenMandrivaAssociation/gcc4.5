@@ -1,14 +1,13 @@
-%define _vendor Manbo
-%define _host_vendor manbo
-%define _real_vendor manbo
+# Disable -Werror because there's a format string warning in gcc/cp/parser.c 
+# around line 2300 that a comment says is intentional :( 
+%define Werror_cflags %nil
 
 %define name			%{cross_prefix}gcc%{package_suffix}
 %define branch			4.5
 %define branch_tag		%(perl -e 'printf "%%02d%%02d", split(/\\./,shift)' %{branch})
-# NOTE! Dont forget to update manbo-files-gcc at the same time, or you will break the BS.
 %define version			4.5.2
 %define snapshot		%nil
-%define release			%{manbo_mkrel 3}
+%define release			4
 %define nof_arches		noarch
 %define spu_arches		ppc64
 %define lsb_arches		i386 x86_64 ia64 ppc ppc64 s390 s390x mips mipsel mips64 mips64el
@@ -27,10 +26,6 @@
 %define libssp_major		0
 %define libgomp_major		1
 %define libgcj_bc_major		1
-
-# Disable -Werror because there's a format string warning in gcc/cp/parser.c 
-# around line 2300 that a comment says is intentional :( 
-%define Werror_cflags %nil
 
 # Package holding Java tools (gij, jv-convert, etc.)
 %define GCJ_TOOLS		%{cross_prefix}gcj%{package_suffix}-tools
@@ -51,7 +46,7 @@
 %{expand: %{?cross_bootstrap:	%%global build_cross_bootstrap 1}}
 
 # System compiler in MDV 2009
-%if %{mdkversion} >= 200900
+%if %{mdkversion} < 201100
 %define system_compiler		1
 %else
 %define system_compiler		0
@@ -175,34 +170,31 @@
 
 %define build_minimal		0
 %define build_monolithic	0
-%define build_doc		1
-%define build_pdf_doc		1
+%define build_doc		%{system_compiler}
+%define build_pdf_doc		%{system_compiler}
 %define build_check		0
-%define build_ada		1
 %define gpc_snapshot		20040516
 %define build_pascal		0
 %ifarch noarch
 %define build_pascal		1
 %endif
+%define build_ada		0
 %if %isarch %{ix86} x86_64 ia64
-%define build_ada		1
+%define build_ada		%{system_compiler}
 %endif
-%define build_cxx		1
+%define build_cxx		%{system_compiler}
 %define build_libstdcxx		%{build_cxx}
 %define build_fortran		%{system_compiler}
-%define build_objc		1
-%define build_objcp		1
-%define build_libmudflap	1
-%define build_libgomp           1
-%define build_libgcj_bc		1
-%define build_libffi		1
-%define build_java		1
+%define build_objc		%{system_compiler}
+%define build_objcp		%{system_compiler}
+%define build_libmudflap	%{system_compiler}
+%define build_libgomp           %{system_compiler}
+%define build_libgcj_bc		%{system_compiler}
+%define build_libffi		%{system_compiler}
+%define build_java		%{system_compiler}
 %define build_debug		0
-%define build_stdcxxheaders	1
-%if %{gcc42_as_system_compiler}
-%define build_libstdcxx		0
-%define build_libmudflap	0
-%endif
+%define build_stdcxxheaders	%{system_compiler}
+%define build_plugin		%{system_compiler}
 %if %{mdkversion} >= 200700
 # use SSP support from glibc 2.4
 %define use_ssp_glibc		1
@@ -211,17 +203,8 @@
 %define build_libssp		1
 %define use_ssp_glibc		0
 %endif
-%if !%{system_compiler}
-%define build_objc		0
-%define build_objcp		0
-%define build_pascal		0
-%define build_ada		0
-%define build_libffi		0
-%define build_libgomp		0
-#define build_libgcj_bc		1
-%endif
 %define use_hash_style_gnu	0
-%define build_cloog		0
+%define build_cloog		%{build_plugin}
 
 # Define C library to use
 %define libc glibc
@@ -495,9 +478,6 @@ Provides:	gcc%{branch} = %{version}-%{release}
 %else
 Conflicts:	gcc%{branch} < %{version}-%{release}
 %endif
-%if "%{_real_vendor}" == "manbo"
-Requires:	manbo-files-gcc%{program_suffix} = %{version}
-%endif
 %if %{build_pdf_doc}
 #BuildRequires:	tetex, tetex-dvips, tetex-latex
 BuildRequires:	texlive
@@ -549,9 +529,6 @@ Provides:	gcc%{branch}-c++ = %{version}-%{release}
 Conflicts:	gcc%{branch}-c++ < %{version}-%{release}
 %endif
 Requires:	%{name} = %{version}-%{release}
-%if "%{_real_vendor}" == "manbo"
-Requires:	manbo-files-gcc-c++%{program_suffix} = %{version}
-%endif
 %if %{system_compiler}
 # some day, rpm will be smart enough: %if (%{system_compiler} || %{build_cross}) && !%{build_monolithic}
 %if %{libc_shared}
@@ -618,9 +595,6 @@ project to implement the ISO/IEC 14882:1998 Standard C++ library.
 %package -n %{libstdcxx_name_orig}-devel
 Summary:	Header files and libraries for C++ development
 Group:		Development/C++
-%if "%{_real_vendor}" == "manbo"
-Requires:	manbo-files-gcc%{program_suffix} = %{version}
-%endif
 %if %{libc_shared}
 Requires:	%{libstdcxx_name} = %{version}-%{release}
 %endif
@@ -757,9 +731,6 @@ Group:		Development/Other
 Obsoletes:	gcc%{branch}-gfortran
 Provides:	gcc%{branch}-gfortran = %{version}-%{release}
 %endif
-%if "%{_real_vendor}" == "manbo"
-Requires:	manbo-files-gcc-gfortran%{program_suffix} = %{version}
-%endif
 Obsoletes:	gcc%{branch}-g77
 Requires:	%{name} = %{version}-%{release}
 %if %{libc_shared} && !%{build_monolithic}
@@ -842,9 +813,6 @@ Group:		Development/Java
 Obsoletes:	gcc%{branch}-java
 Provides:	gcc%{branch}-java = %{version}-%{release}
 %endif
-%if "%{_real_vendor}" == "manbo"
-Requires:	manbo-files-gcc-java%{program_suffix} = %{version}
-%endif
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{GCJ_TOOLS} = %{version}-%{release}
 Requires:	%{libgcj_name} >= %{version}
@@ -866,9 +834,6 @@ Group:		Development/Java
 Obsoletes:	%{cross_prefix}gcj%{branch}-tools
 Provides:	%{cross_prefix}gcj%{branch}-tools = %{version}-%{release}
 Requires:	%{libgcj_bc_name} >= %{version}
-%endif
-%if "%{_real_vendor}" == "manbo"
-Requires:	manbo-files-gcc-java%{program_suffix} = %{version}
 %endif
 Provides:	%{cross_prefix}gcj-tools = %{version}-%{release}
 Requires:	%{libgcj_name} >= %{version}
@@ -948,9 +913,6 @@ Requires:	zlib-devel
 Requires:	%{libgcj_name} = %{version}-%{release}
 Provides:	%{libgcj_name_orig}%{branch}-devel = %{version}-%{release}
 Provides:	%{libgcj_name_orig}-devel = %{version}-%{release}
-%if "%{_real_vendor}" == "manbo"
-Requires:	manbo-files-gcc%{program_suffix} = %{version}
-%endif
 %if %{system_compiler}
 Requires:	%{libgcj_bc_name} >= %{version}-%{release}
 Obsoletes:	libgcj3-devel
@@ -1035,9 +997,6 @@ for FFI support.
 %package -n %{libffi_name}-devel
 Summary:	Development headers and static library for FFI
 Group:		Development/C
-%if "%{_real_vendor}" == "manbo"
-Requires:	manbo-files-gcc%{program_suffix} = %{version}
-%endif
 Requires:	%{libffi_name} = %{version}-%{release}
 Provides:	%{libffi_name_orig}-devel = %{version}-%{release}
 Obsoletes:	%{libffi_name_orig}-devel = 4.3.2
@@ -1358,6 +1317,12 @@ OPT_FLAGS=`echo $RPM_OPT_FLAGS|sed -e 's/-fno-rtti//g' -e 's/-fno-exceptions//g'
 %if %{build_debug}
 OPT_FLAGS=`echo "$OPT_FLAGS -g" | sed -e "s/-fomit-frame-pointer//g"`
 %endif
+OPT_FLAGS=`echo $OPT_FLAGS |					\
+	sed	-e 's/\(-Wp,\)\?-D_FORTIFY_SOURCE=[12]//g'	\
+		-e 's/-m\(31\|32\|64\)//g'			\
+		-e 's/-fstack-protector//g'			\
+		-e 's/--param=ssp-buffer-size=4//'		\
+		-e 's/-pipe//g'`
 %if %{build_cross}
 OPT_FLAGS="-O2 -g -pipe"
 %endif
@@ -1368,6 +1333,7 @@ OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/\(-m64\|-m32\)//g'`
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-Wp,-D_FORTIFY_SOURCE=2 -fstack-protector --param=ssp-buffer-size=4//'`
 %endif
 OPT_FLAGS=`echo $OPT_FLAGS|sed -e 's/-fomit-frame-pointer//g'`
+OPT_FLAGS=`echo "$OPT_FLAGS" | sed -e 's/[[:blank:]]\+/ /g'`
 
 # don't build crt files with -fasynchronous-unwind-tables
 case " $OPT_FLAGS " in
@@ -1441,6 +1407,13 @@ LIBGOMP_FLAGS="--disable-libgomp"
 %endif
 %if %{build_cloog}
 CLOOG_FLAGS="--with-ppl --with-cloog"
+%else
+CLOOG_FLAGS="--without-ppl --without-cloog"
+%endif
+%if %{build_plugin}
+PLUGIN_FLAGS="--enable-plugin"
+%else
+PLUGIN_FLAGS="--disable-plugin"
 %endif
 %if !%{build_libffi} && !%{build_java}
 LIBFFI_FLAGS="--disable-libffi"
@@ -1496,23 +1469,15 @@ CC="%{__cc}" CFLAGS="$OPT_FLAGS" CXXFLAGS="$OPT_FLAGS" XCFLAGS="$OPT_FLAGS" TCFL
 	--with-system-zlib $LIBC_FLAGS $LIBOBJC_FLAGS $LIBSTDCXX_FLAGS $LIBJAVA_FLAGS $SSP_FLAGS \
 	$MUDFLAP_FLAGS $LIBFFI_FLAGS --disable-werror $LIBGOMP_FLAGS \
 	$CLOOG_FLAGS --with-python-dir=%{python_dir} --enable-lto \
-	--enable-plugin
+	$PLUGIN_FLAGS
 touch ../gcc/c-gperf.h
 %if %{build_cross}
 # (peryvind): xgcc seems to ignore --sysroot, so let's just workaround it for
 # by adding a symlink to the headers since xgcc already passes -isystem ./include
 mkdir -p %{target_cpu}-linux/libgcc
 ln -sf $PWD/../sysroot/usr/include %{target_cpu}-linux/libgcc/include
-
-%make
-%else
-# bootstrap-lean is similar to bootstrap except "object files from the stage1
-# and stage2 of the 3-stage bootstrap of the compiler are deleted as soon as
-# they are no longer needed."
-%make bootstrap-lean BOOT_CFLAGS="$OPT_FLAGS"
-
 %endif
-
+%make
 cd ..
 
 # Build the SPU compiler
@@ -1911,8 +1876,6 @@ FakeAlternatives() {
   done
 }
 
-# Alternatives provide /lib/cpp and %{_bindir}/cpp
-(cd %{buildroot}%{_bindir}; FakeAlternatives cpp)
 %if !%{build_cross} && %{system_compiler}
 (mkdir -p %{buildroot}/lib; cd %{buildroot}/lib; ln -sf %{_bindir}/cpp cpp)
 %endif
@@ -2579,7 +2542,6 @@ if [ "$1" = "0" ];then /sbin/install-info %{_infodir}/gcc%{_package_suffix}.info
 %if %{build_cross} && !%{build_cross_bootstrap}|| %{system_compiler}
 /lib/%{cross_program_prefix}cpp
 %endif
-%ghost %{_bindir}/%{cross_program_prefix}cpp
 %{_bindir}/%{program_prefix}cpp%{program_long_suffix}
 %{gcc_libdir}/%{gcc_target_platform}/%{version}/cc1
 
@@ -2615,9 +2577,11 @@ if [ "$1" = "0" ];then /sbin/install-info %{_infodir}/gcc%{_package_suffix}.info
 %endif
 %endif
 
+%if %{build_plugin}
 %files -n gcc-plugins
 %dir %{gcc_libdir}/%{gcc_target_platform}/%{version}/plugin/include/
 %{gcc_libdir}/%{gcc_target_platform}/%{version}/plugin/include/*
+%endif
 
 %if %{build_libstdcxx} && %{libc_shared}
 %if !%{build_monolithic}
