@@ -1385,6 +1385,9 @@ LIBSTDCXX_FLAGS="--enable-long-long --enable-__cxa_atexit --disable-libunwind-ex
 case %{libc} in
 glibc)		LIBSTDCXX_FLAGS="$LIBSTDCXX_FLAGS --enable-clocale=gnu";;
 esac
+%if !%{build_libstdcxx}
+LIBSTDCXX_FLAGS="$LIBSTDCXX_FLAGS --with-host-libstdcxx=-lstdc++"
+%endif
 %endif
 %if %{build_java}
 LIBJAVA_FLAGS="--enable-java-awt=gtk --with-java-home=%{jdk_home} --with-ecj-jar=%{_datadir}/java/eclipse-ecj.jar"
