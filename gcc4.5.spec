@@ -7,7 +7,7 @@
 %define branch_tag		%(perl -e 'printf "%%02d%%02d", split(/\\./,shift)' %{branch})
 %define version			4.5.2
 %define snapshot		%nil
-%define release			4
+%define release			5
 %define nof_arches		noarch
 %define spu_arches		ppc64
 %define lsb_arches		i386 x86_64 ia64 ppc ppc64 s390 s390x mips mipsel mips64 mips64el
@@ -182,8 +182,8 @@
 %if %isarch %{ix86} x86_64 ia64
 %define build_ada		%{system_compiler}
 %endif
-%define build_cxx		%{system_compiler}
-%define build_libstdcxx		%{build_cxx}
+%define build_cxx		1
+%define build_libstdcxx		%{system_compiler}
 %define build_fortran		%{system_compiler}
 %define build_objc		%{system_compiler}
 %define build_objcp		%{system_compiler}
@@ -194,7 +194,7 @@
 %define build_java		%{system_compiler}
 %define build_debug		0
 %define build_stdcxxheaders	%{system_compiler}
-%define build_plugin		%{system_compiler}
+%define build_plugin		1
 %if %{mdkversion} >= 200700
 # use SSP support from glibc 2.4
 %define use_ssp_glibc		1
@@ -563,10 +563,11 @@ programs is available separately.
 
 ####################################################################
 # gcc Plugins
-%package -n gcc-plugins
+%package plugin-devel
 Summary:	Headers to build gcc plugins
 Group:		Development/C
-%description -n gcc-plugins
+Obsoletes:	gcc-plugins <= 4.5.2-4
+%description plugin-devel
 This package contains the headers needed to build gcc plugins.
 
 ####################################################################
@@ -1880,10 +1881,11 @@ FakeAlternatives() {
 (mkdir -p %{buildroot}/lib; cd %{buildroot}/lib; ln -sf %{_bindir}/cpp cpp)
 %endif
 
+## Disabling not to have any /usr/bin/c++ conflicting with system compiler
 # Alternatives provide /usr/bin/c++
-%if %{build_cxx}
-(cd %{buildroot}%{_bindir}; FakeAlternatives c++)
-%endif
+#if %{build_cxx}
+# (cd %{buildroot}%{_bindir}; FakeAlternatives c++)
+#endif
 
 if [[ -z "%{?cross_bootstrap:1}" ]] && [[ "%{libc_shared}" = "1" ]]; then
 # Move libgcc_s.so* to /%{_lib}
@@ -2128,6 +2130,7 @@ mv -f %{buildroot}%{_prefix}/lib/libstdc++.so.%{libstdcxx_major}.0.%{libstdcxx_m
 %clean
 rm -rf %{buildroot}
 
+%if %{system_compiler}
 %post
 /usr/sbin/update-alternatives --install %{_bindir}/%{cross_program_prefix}gcc %{cross_program_prefix}gcc %{_bindir}/%{program_prefix}gcc-%{version} %{alternative_priority}
 [ -e %{_bindir}/%{cross_program_prefix}gcc ] || /usr/sbin/update-alternatives --auto %{cross_program_prefix}gcc
@@ -2147,6 +2150,7 @@ if [ ! -f %{_bindir}/%{cross_program_prefix}g++-%{version} ]; then
   /usr/sbin/update-alternatives --remove %{cross_program_prefix}g++ %{_bindir}/%{program_prefix}g++-%{version}
 fi
 %endif
+%endif # %if %{system_compiler}
 
 %if %{build_libstdcxx}
 %if %mdkversion < 200900
@@ -2187,6 +2191,7 @@ fi
 %postun -n %{libgomp_name} -p /sbin/ldconfig
 %endif
 
+%if %{system_compiler}
 %post cpp
 /usr/sbin/update-alternatives --install %{_bindir}/%{cross_program_prefix}cpp %{cross_program_prefix}cpp %{_bindir}/%{program_prefix}cpp-%{version} %{alternative_priority} --slave /lib/%{cross_program_prefix}cpp %{cross_program_prefix}lib_cpp %{_bindir}/%{program_prefix}cpp-%{version}
 [ -e %{_bindir}/%{cross_program_prefix}cpp ] || /usr/sbin/update-alternatives --auto %{cross_program_prefix}cpp
@@ -2195,6 +2200,7 @@ fi
 if [ ! -f %{_bindir}/%{cross_program_prefix}cpp-%{version} ]; then
   /usr/sbin/update-alternatives --remove %{cross_program_prefix}cpp %{_bindir}/%{program_prefix}cpp-%{version}
 fi
+%endif # %if %{system_compiler}
 
 %if %{build_java}
 %if %mdkversion < 200900
@@ -2551,7 +2557,9 @@ if [ "$1" = "0" ];then /sbin/install-info %{_infodir}/gcc%{_package_suffix}.info
 #
 %{_mandir}/man1/%{program_prefix}g++%{program_suffix}.1*
 #
+%if %{system_compiler}
 %ghost %{_bindir}/%{cross_program_prefix}c++
+%endif
 %{_bindir}/%{program_prefix}g++%{program_long_suffix}
 %{_bindir}/%{program_prefix}c++%{program_long_suffix}
 %{_bindir}/%{gcc_target_platform}-g++%{program_suffix}
@@ -2578,7 +2586,7 @@ if [ "$1" = "0" ];then /sbin/install-info %{_infodir}/gcc%{_package_suffix}.info
 %endif
 
 %if %{build_plugin}
-%files -n gcc-plugins
+%files plugin-devel
 %dir %{gcc_libdir}/%{gcc_target_platform}/%{version}/plugin/include/
 %{gcc_libdir}/%{gcc_target_platform}/%{version}/plugin/include/*
 %endif
