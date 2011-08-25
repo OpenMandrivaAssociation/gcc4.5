@@ -1385,8 +1385,9 @@ LIBSTDCXX_FLAGS="--enable-long-long --enable-__cxa_atexit --disable-libunwind-ex
 case %{libc} in
 glibc)		LIBSTDCXX_FLAGS="$LIBSTDCXX_FLAGS --enable-clocale=gnu";;
 esac
+# If no libstdcxx is built but C++ is requested
 %if !%{build_libstdcxx}
-LIBSTDCXX_FLAGS="$LIBSTDCXX_FLAGS --with-host-libstdcxx=-lstdc++"
+LIBSTDCXX_FLAGS="$LIBSTDCXX_FLAGS --disable-hosted-libstdcxx"
 %endif
 %endif
 %if %{build_java}
