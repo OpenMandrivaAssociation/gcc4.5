@@ -2590,7 +2590,7 @@ if [ "$1" = "0" ];then /sbin/install-info %{_infodir}/gcc%{_package_suffix}.info
 %endif
 %{gcc_libdir}/%{gcc_target_platform}/%{version}/32/libsupc++.a
 %endif
-%if %{build_cxx} && !%{build_stdcxx}
+%if %{build_cxx} && !%{build_libstdcxx}
 %{_includedir}/c++/%{version}/*
 %{_includedir}/c++/%{version}/%{gcc_target_platform}/bits/*
 %{_libdir}/libstdc++*-gdb.py
