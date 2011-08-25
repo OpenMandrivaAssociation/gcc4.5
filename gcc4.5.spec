@@ -1830,14 +1830,14 @@ mv %{buildroot}%{_prefix}/lib/libgcj.spec $FULLPATH/libgcj.spec
 %endif
 
 # Move <cxxabi.h> to compiler-specific directories
-%if %{build_cxx}
+%if %{build_libstdcxx}
 mkdir -p $FULLPATH/include/bits/
 mv %{buildroot}%{libstdcxx_includedir}/cxxabi.h $FULLPATH/include/
 mv %{buildroot}%{libstdcxx_includedir}/%{gcc_target_platform}/bits/cxxabi_tweaks.h $FULLPATH/include/bits/
 %endif
 
 # Ship with biarch c++config.h headers
-%if %{build_cxx}
+%if %{build_libstdcxx}
 pushd obj-%{gcc_target_platform}
 cxxconfig="`find %{gcc_target_platform}/libstdc++-v3/include -name c++config.h`"
 for i in `find %{gcc_target_platform}/[36]*/libstdc++-v3/include -name c++config.h 2>/dev/null`; do
@@ -2004,7 +2004,7 @@ done
 %define find_lang /usr/lib/rpm/find-lang.sh %buildroot
 %find_lang %{name}
 %find_lang cpplib
-%if %{build_cxx}
+%if %{build_libstdcxx}
 %find_lang libstdc++
 %endif
 %else
