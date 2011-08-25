@@ -2593,7 +2593,10 @@ if [ "$1" = "0" ];then /sbin/install-info %{_infodir}/gcc%{_package_suffix}.info
 %if %{build_cxx} && !%{build_libstdcxx}
 %{_includedir}/c++/%{version}/*
 %{_includedir}/c++/%{version}/%{gcc_target_platform}/bits/*
+%{_libdir}/libstdc++*-gdb.py
+%if %isarch %{biarches}
 %{_prefix}/lib/libstdc++*-gdb.py
+%endif
 %dir %{_datadir}/gcc-%{version}/python/libstdcxx
 %{_datadir}/gcc-%{version}/python/libstdcxx/*
 %endif
