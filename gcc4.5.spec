@@ -314,8 +314,9 @@
 # Define library packages names
 %define libgcc_name_orig	%{cross_prefix}libgcc
 %define libgcc_name		%{libgcc_name_orig}%{libgcc_major}
-%define libstdcxx_name_orig	%{cross_prefix}libstdc++
-%define libstdcxx_name		%{libstdcxx_name_orig}%{libstdcxx_major}
+%define libstdcxx_name_base	%{cross_prefix}libstdc++
+%define libstdcxx_name_orig	%{cross_prefix}libstdc++-%{branch}
+%define libstdcxx_name		%{libstdcxx_name_base}%{libstdcxx_major}-%{branch}
 %define libgfortran_name_orig	%{cross_prefix}libgfortran
 %define libgfortran_name	%{libgfortran_name_orig}%{libgfortran_major}
 %define libgcj_name_orig	%{cross_prefix}libgcj
