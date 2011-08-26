@@ -2091,6 +2091,11 @@ export DONT_SYMLINK_LIBS=1
 export DONT_STRIP=1
 %endif
 
+# If not system compiler, do not recreate symlinks
+%if !%{system_compiler}
+export DONT_SYMLINK_LIBS=1
+%endif
+
 %if %{build_debug}
 # Don't strip in debug mode
 export DONT_STRIP=1
@@ -2123,9 +2128,9 @@ esac
 
 %if %{build_libstdcxx}
 %if !%{system_compiler}
-rm -f %{buildroot}%{target_libdir}/libstdc++.so.%{libstdcxx_major}*
+rm -f %{buildroot}%{target_libdir}/libstdc++.so.%{libstdcxx_major}
 %if %isarch %{biarches}
-rm -f %{buildroot}%{_prefix}/lib/libstdc++.so.%{libstdcxx_major}*
+rm -f %{buildroot}%{_prefix}/lib/libstdc++.so.%{libstdcxx_major}
 %endif
 %endif
 mkdir -p %{buildroot}%{_datadir}/gdb/auto-load/%{_libdir}
@@ -2623,20 +2628,20 @@ if [ "$1" = "0" ];then /sbin/install-info %{_infodir}/gcc%{_package_suffix}.info
 %defattr(-,root,root)
 %if %{system_compiler}
 %{target_libdir}/libstdc++.so.%{libstdcxx_major}
-%{target_libdir}/libstdc++.so.%{libstdcxx_major}.0.%{libstdcxx_minor}
 %endif
+%{target_libdir}/libstdc++.so.%{libstdcxx_major}.0.%{libstdcxx_minor}
 %if %isarch %{biarches}
 %if %{system_compiler}
 %{_prefix}/lib/libstdc++.so.%{libstdcxx_major}
-%{_prefix}/lib/libstdc++.so.%{libstdcxx_major}.0.%{libstdcxx_minor}
 %endif
+%{_prefix}/lib/libstdc++.so.%{libstdcxx_major}.0.%{libstdcxx_minor}
 %endif
 %if %isarch %{nof_arches}
 %dir %{_libdir}/nof
 %if %{system_compiler}
 %{_libdir}/nof/libstdc++.so.%{libstdcxx_major}
-%{_libdir}/nof/libstdc++.so.%{libstdcxx_major}.0.%{libstdcxx_minor}
 %endif
+%{_libdir}/nof/libstdc++.so.%{libstdcxx_major}.0.%{libstdcxx_minor}
 %endif
 %endif
 
