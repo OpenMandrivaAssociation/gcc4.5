@@ -183,7 +183,7 @@
 %define build_ada		%{system_compiler}
 %endif
 %define build_cxx		1
-%define build_libstdcxx		%{system_compiler}
+%define build_libstdcxx		%{build_cxx}
 %define build_fortran		%{system_compiler}
 %define build_objc		%{system_compiler}
 %define build_objcp		%{system_compiler}
@@ -596,9 +596,9 @@ project to implement the ISO/IEC 14882:1998 Standard C++ library.
 %package -n %{libstdcxx_name_orig}-devel
 Summary:	Header files and libraries for C++ development
 Group:		Development/C++
-%if %{libc_shared}
-Requires:	%{libstdcxx_name} = %{version}-%{release}
-%endif
+#if %{libc_shared}
+#Requires:	%{libstdcxx_name} = %{version}-%{release}
+#endif
 Obsoletes:	%{libstdcxx_name_orig}%{branch}-devel
 Provides:	%{libstdcxx_name_orig}%{branch}-devel = %{version}-%{release}
 Provides:	%{libstdcxx_name_orig}6-devel
@@ -2121,6 +2121,12 @@ esac
 %endif
 
 %if %{build_libstdcxx}
+%if !%{system_compiler}
+rm -f %{buildroot}%{target_libdir}/libstdc++.so.%{libstdcxx_major}
+%if %isarch %{biarches}
+rm -f %{buildroot}%{_prefix}/lib/libstdc++.so.%{libstdcxx_major}
+%endif
+%endif
 mkdir -p %{buildroot}%{_datadir}/gdb/auto-load/%{_libdir}
 mv -f %{buildroot}%{_libdir}/libstdc++.so.%{libstdcxx_major}.0.%{libstdcxx_minor}-gdb.py \
       %{buildroot}%{_datadir}/gdb/auto-load/%{_libdir}/
@@ -2614,15 +2620,21 @@ if [ "$1" = "0" ];then /sbin/install-info %{_infodir}/gcc%{_package_suffix}.info
 %files -n %{libstdcxx_name}
 %endif
 %defattr(-,root,root)
+%if %{system_compiler}
 %{target_libdir}/libstdc++.so.%{libstdcxx_major}
+%endif
 %{target_libdir}/libstdc++.so.%{libstdcxx_major}.0.%{libstdcxx_minor}
 %if %isarch %{biarches}
+%if %{system_compiler}
 %{_prefix}/lib/libstdc++.so.%{libstdcxx_major}
+%endif
 %{_prefix}/lib/libstdc++.so.%{libstdcxx_major}.0.%{libstdcxx_minor}
 %endif
 %if %isarch %{nof_arches}
 %dir %{_libdir}/nof
+%if %{system_compiler}
 %{_libdir}/nof/libstdc++.so.%{libstdcxx_major}
+%endif
 %{_libdir}/nof/libstdc++.so.%{libstdcxx_major}.0.%{libstdcxx_minor}
 %endif
 %endif
@@ -2633,7 +2645,9 @@ if [ "$1" = "0" ];then /sbin/install-info %{_infodir}/gcc%{_package_suffix}.info
 %endif
 %defattr(-,root,root)
 #
+%if %{system_compiler}
 %doc libstdc++-v3/README*
+%endif
 #
 %dir %{libstdcxx_includedir}
 %{libstdcxx_includedir}/*
