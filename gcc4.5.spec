@@ -7,7 +7,7 @@
 %define branch_tag		%(perl -e 'printf "%%02d%%02d", split(/\\./,shift)' %{branch})
 %define version			4.5.2
 %define snapshot		%nil
-%define release			6
+%define release			7
 %define nof_arches		noarch
 %define spu_arches		ppc64
 %define lsb_arches		i386 x86_64 ia64 ppc ppc64 s390 s390x mips mipsel mips64 mips64el
@@ -455,10 +455,6 @@ BuildRequires: ppl-devel >= 0.10, cloog-ppl-devel >= 0.15
 #needed for lto support
 BuildRequires: elfutils-devel
 Requires:	%{name}-cpp = %{version}-%{release}
-# FIXME: We need a libgcc with 3.4 symbols
-%if %{libc_shared} && !%{build_monolithic}
-Requires:	%{libgcc_name_orig} >= 3.3.2-5mdk
-%endif
 Requires(post): update-alternatives
 Requires(postun): update-alternatives
 BuildRequires:	gettext, flex, bison
